@@ -224,27 +224,18 @@ check_binary_number_operand
 
 
 void
-check_binary_number_or_string_operands
+write_binary_error_and_throw
 (
     ErrorHandler* error_handler,
     const Offset& op_offset,
     std::shared_ptr<Object> lhs,
     std::shared_ptr<Object> rhs,
     const Offset& lhs_offset,
-    const Offset& rhs_offset
+    const Offset& rhs_offset,
+    const std::string& error
 )
 {
-    const auto lhs_type = lhs->get_type();
-    const auto rhs_type = rhs->get_type();
-    if
-    (
-        (is_number(lhs_type) && is_number(rhs_type))
-        ||
-        (lhs_type == ObjectType::string && rhs_type == ObjectType::string)
-    )
-    { return; }
-
-    error_handler->on_error(op_offset, "operands must be numbers or strings");
+    error_handler->on_error(op_offset, fmt::format("operands must be {}", error));
     error_handler->on_note(lhs_offset, fmt::format("left hand evaluated to {}", objecttype_to_string(lhs)));
     error_handler->on_note(rhs_offset, fmt::format("right hand evaluated to {}", objecttype_to_string(rhs)));
     throw RuntimeError();
@@ -1553,7 +1544,6 @@ struct MainInterpreter : ExpressionObjectVisitor, StatementVoidVisitor
             check_binary_number_operand(error_handler, x.op_offset, left, right, x.left->offset, x.right->offset);
             return make_number_float( get_number_as_float(left) * get_number_as_float(right) );
         case TokenType::PLUS:
-            check_binary_number_or_string_operands(error_handler, x.op_offset, left, right, x.left->offset, x.right->offset);
             if(is_number(left->get_type()) && is_number(right->get_type()))
             {
                 if(left->get_type() == ObjectType::number_float || right->get_type() == ObjectType::number_float)
@@ -1571,6 +1561,7 @@ struct MainInterpreter : ExpressionObjectVisitor, StatementVoidVisitor
             }
             else
             {
+                write_binary_error_and_throw(error_handler, x.op_offset, left, right, x.left->offset, x.right->offset, "number or string");
                 assert(false && "interpreter error");
                 return nullptr;
             }

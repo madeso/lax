@@ -589,6 +589,17 @@ get_number_as_float(std::shared_ptr<Object> obj)
 }
 
 
+bool is_instance(ObjectType type)
+{
+    switch (type)
+    {
+    case ObjectType::instance:
+    case ObjectType::native_instance:
+        return true;
+    default:
+        return false;
+    }
+}
 
 struct MainInterpreter : ExpressionObjectVisitor, StatementVoidVisitor
 {
@@ -1558,6 +1569,31 @@ struct MainInterpreter : ExpressionObjectVisitor, StatementVoidVisitor
             else if(left->get_type() == ObjectType::string && right->get_type() == ObjectType::string)
             {
                 return make_string( get_string_or_ub(left) + get_string_or_ub(right) );
+            }
+            else if (is_instance(left->get_type()) && is_instance(right->get_type()))
+            {
+                auto left_ins = as_instance(left);
+                auto right_ins = as_instance(right);
+                if (left_ins->klass != right_ins->klass)
+                {
+                    write_binary_error_and_throw(error_handler, x.op_offset, left, right, x.left->offset, x.right->offset, "same class type");
+                    assert(false && "interpreter error");
+                    return nullptr;
+                }
+                
+                auto add_func =left_ins->klass->get_static_method_or_null("_add");
+                if (add_func == nullptr)
+                {
+                    write_binary_error_and_throw(error_handler, x.op_offset, left, right, x.left->offset, x.right->offset, "class with static _add method");
+                    assert(false && "interpreter error");
+                    return nullptr;
+                }
+
+                
+                auto ret = add_func->call(interpreter, { {left, right} });
+
+                // todo(Gustav): check that return value is of expected type?
+                return ret;
             }
             else
             {

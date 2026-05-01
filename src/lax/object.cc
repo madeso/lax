@@ -716,6 +716,18 @@ Klass::add_static_method_or_false(const std::string& name, std::shared_ptr<Calla
 }
 
 
+std::shared_ptr<Callable>
+Klass::get_static_method_or_null(const std::string& method_name)
+{
+    if (auto found = static_methods.find(method_name); found != static_methods.end())
+    {
+        return found->second;
+    }
+
+    return nullptr;
+}
+
+
 bool
 Klass::has_properties()
 {

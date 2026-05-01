@@ -1681,5 +1681,42 @@ TEST_CASE("interpret ok", "[interpret]")
             "dog"
         }));
     }
+
+    SECTION("call operator +")
+    {
+        const auto run_ok = run_string
+        (lx, R"lax(
+            class Text
+            {
+                var data;
+
+                fun init(d)
+                {
+                    this.data = d;
+                }
+
+                fun say()
+                {
+                    print this.data;
+                }
+
+                static fun _add(lhs, rhs)
+                {
+                    return new Text(lhs.data + rhs.data);
+                }
+            }
+
+            var lhs = new Text("hello");
+            var rhs = new Text(" world");
+
+            lhs += rhs;
+            lhs.say();
+        )lax");
+        CHECK(run_ok);
+        REQUIRE(StringEq(error_list, {}));
+        CHECK(StringEq(console_out, {
+            "hello world"
+            }));
+    }
 }
 

@@ -198,6 +198,8 @@ struct Klass : Type
     std::shared_ptr<Callable> find_method_or_null(const std::string& name);
 
     bool add_static_method_or_false(const std::string& name, std::shared_ptr<Callable> method);
+    std::shared_ptr<Callable> get_static_method_or_null(const std::string& method_name);
+
     bool has_properties() override;
     std::shared_ptr<Object> get_property_or_null(const std::string& name) override;
     bool set_property_or_false(const std::string& name, std::shared_ptr<Object> value) override;

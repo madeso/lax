@@ -202,28 +202,6 @@ check_single_number_operand
 
 
 void
-check_binary_number_operand
-(
-    ErrorHandler* error_handler,
-    const Offset& op_offset,
-    std::shared_ptr<Object> lhs,
-    std::shared_ptr<Object> rhs,
-    const Offset& lhs_offset,
-    const Offset& rhs_offset
-)
-{
-    const auto lhs_type = lhs->get_type();
-    const auto rhs_type = rhs->get_type();
-    if(is_number(lhs_type) && is_number(rhs_type)) { return; }
-
-    error_handler->on_error(op_offset, "operands must be a numbers");
-    error_handler->on_note(lhs_offset, fmt::format("left hand evaluated to {}", objecttype_to_string(lhs)));
-    error_handler->on_note(rhs_offset, fmt::format("right hand evaluated to {}", objecttype_to_string(rhs)));
-    throw RuntimeError();
-}
-
-
-void
 write_binary_error_and_throw
 (
     ErrorHandler* error_handler,
@@ -1564,21 +1542,57 @@ struct MainInterpreter : ExpressionObjectVisitor, StatementVoidVisitor
         switch(x.op)
         {
         case TokenType::MINUS:
-            check_binary_number_operand(error_handler, x.op_offset, left, right, x.left->offset, x.right->offset);
-            if(left->get_type() == ObjectType::number_float || right->get_type() == ObjectType::number_float)
+            if (is_number(left->get_type()) && is_number(right->get_type()))
             {
-                return make_number_float( get_number_as_float(left) - get_number_as_float(right) );
+                if (left->get_type() == ObjectType::number_float || right->get_type() == ObjectType::number_float)
+                {
+                    return make_number_float(get_number_as_float(left) - get_number_as_float(right));
+                }
+                else
+                {
+                    return make_number_int(get_int_or_ub(left) - get_int_or_ub(right));
+                }
+            }
+            else if (is_instance(left->get_type()) && is_instance(right->get_type()))
+            {
+                return perform_binary_op_on_instances(x, left, right, "_min");
             }
             else
             {
-                return make_number_int( get_int_or_ub(left) - get_int_or_ub(right) );
+                write_binary_error_and_throw(error_handler, x.op_offset, left, right, x.left->offset, x.right->offset, "number or class instance");
+                assert(false && "interpreter error");
+                return nullptr;
             }
         case TokenType::SLASH:
-            check_binary_number_operand(error_handler, x.op_offset, left, right, x.left->offset, x.right->offset);
-            return make_number_float( get_number_as_float(left) / get_number_as_float(right) );
+            if (is_number(left->get_type()) && is_number(right->get_type()))
+            {
+                return make_number_float(get_number_as_float(left) / get_number_as_float(right));
+            }
+            else if (is_instance(left->get_type()) && is_instance(right->get_type()))
+            {
+                return perform_binary_op_on_instances(x, left, right, "_div");
+            }
+            else
+            {
+                write_binary_error_and_throw(error_handler, x.op_offset, left, right, x.left->offset, x.right->offset, "number or class instance");
+                assert(false && "interpreter error");
+                return nullptr;
+            }
         case TokenType::STAR:
-            check_binary_number_operand(error_handler, x.op_offset, left, right, x.left->offset, x.right->offset);
-            return make_number_float( get_number_as_float(left) * get_number_as_float(right) );
+            if (is_number(left->get_type()) && is_number(right->get_type()))
+            {
+                return make_number_float(get_number_as_float(left) * get_number_as_float(right));
+            }
+            else if (is_instance(left->get_type()) && is_instance(right->get_type()))
+            {
+                return perform_binary_op_on_instances(x, left, right, "_mul");
+            }
+            else
+            {
+                write_binary_error_and_throw(error_handler, x.op_offset, left, right, x.left->offset, x.right->offset, "number or class instance");
+                assert(false && "interpreter error");
+                return nullptr;
+            }
         case TokenType::PLUS:
             if(is_number(left->get_type()) && is_number(right->get_type()))
             {
@@ -1606,17 +1620,49 @@ struct MainInterpreter : ExpressionObjectVisitor, StatementVoidVisitor
                 return nullptr;
             }
         case TokenType::LESS:
-            check_binary_number_operand(error_handler, x.op_offset, left, right, x.left->offset, x.right->offset);
-            return make_bool( get_number_as_float(left) < get_number_as_float(right) );
+            if (is_number(left->get_type()) && is_number(right->get_type()))
+            {
+                return make_bool(get_number_as_float(left) < get_number_as_float(right));
+            }
+            else
+            {
+                write_binary_error_and_throw(error_handler, x.op_offset, left, right, x.left->offset, x.right->offset, "number");
+                assert(false && "interpreter error");
+                return nullptr;
+            }
         case TokenType::LESS_EQUAL:
-            check_binary_number_operand(error_handler, x.op_offset, left, right, x.left->offset, x.right->offset);
-            return make_bool( get_number_as_float(left) <= get_number_as_float(right) );
+            if (is_number(left->get_type()) && is_number(right->get_type()))
+            {
+                return make_bool(get_number_as_float(left) <= get_number_as_float(right));
+            }
+            else
+            {
+                write_binary_error_and_throw(error_handler, x.op_offset, left, right, x.left->offset, x.right->offset, "number");
+                assert(false && "interpreter error");
+                return nullptr;
+            }
         case TokenType::GREATER:
-            check_binary_number_operand(error_handler, x.op_offset, left, right, x.left->offset, x.right->offset);
-            return make_bool( get_number_as_float(left) > get_number_as_float(right) );
+            if (is_number(left->get_type()) && is_number(right->get_type()))
+            {
+                return make_bool(get_number_as_float(left) > get_number_as_float(right));
+            }
+            else
+            {
+                write_binary_error_and_throw(error_handler, x.op_offset, left, right, x.left->offset, x.right->offset, "number");
+                assert(false && "interpreter error");
+                return nullptr;
+            }
         case TokenType::GREATER_EQUAL:
-            check_binary_number_operand(error_handler, x.op_offset, left, right, x.left->offset, x.right->offset);
-            return make_bool( get_number_as_float(left) >= get_number_as_float(right) );
+            if (is_number(left->get_type()) && is_number(right->get_type()))
+            {
+                return make_bool(get_number_as_float(left) >= get_number_as_float(right));
+            }
+            else
+            {
+                write_binary_error_and_throw(error_handler, x.op_offset, left, right, x.left->offset, x.right->offset, "number");
+                assert(false && "interpreter error");
+                return nullptr;
+            }
         case TokenType::BANG_EQUAL:
             return make_bool( !is_equal(left, right) );
         case TokenType::EQUAL_EQUAL:

@@ -1528,6 +1528,31 @@ struct MainInterpreter : ExpressionObjectVisitor, StatementVoidVisitor
         // return get_var(*current_environment, x.name, x.offset);
     }
 
+    std::shared_ptr<Object> perform_binary_op_on_instances(const BinaryExpression& x, std::shared_ptr<Object> left, std::shared_ptr<Object> right, const std::string& method_name)
+    {
+        auto left_ins = as_instance(left);
+        auto right_ins = as_instance(right);
+        if (left_ins->klass != right_ins->klass)
+        {
+            write_binary_error_and_throw(error_handler, x.op_offset, left, right, x.left->offset, x.right->offset, "same class type");
+            assert(false && "interpreter error");
+            return nullptr;
+        }
+                
+        auto add_func =left_ins->klass->get_static_method_or_null(method_name);
+        if (add_func == nullptr)
+        {
+            write_binary_error_and_throw(error_handler, x.op_offset, left, right, x.left->offset, x.right->offset, fmt::format("class with static {} method", method_name));
+            assert(false && "interpreter error");
+            return nullptr;
+        }
+
+        auto ret = add_func->call(interpreter, { {left, right} });
+
+        // todo(Gustav): check that return value is of expected type?
+        return ret;
+    }
+
     std::shared_ptr<Object>
     on_binary_expression(const BinaryExpression& x) override
     {
@@ -1572,28 +1597,7 @@ struct MainInterpreter : ExpressionObjectVisitor, StatementVoidVisitor
             }
             else if (is_instance(left->get_type()) && is_instance(right->get_type()))
             {
-                auto left_ins = as_instance(left);
-                auto right_ins = as_instance(right);
-                if (left_ins->klass != right_ins->klass)
-                {
-                    write_binary_error_and_throw(error_handler, x.op_offset, left, right, x.left->offset, x.right->offset, "same class type");
-                    assert(false && "interpreter error");
-                    return nullptr;
-                }
-                
-                auto add_func =left_ins->klass->get_static_method_or_null("_add");
-                if (add_func == nullptr)
-                {
-                    write_binary_error_and_throw(error_handler, x.op_offset, left, right, x.left->offset, x.right->offset, "class with static _add method");
-                    assert(false && "interpreter error");
-                    return nullptr;
-                }
-
-                
-                auto ret = add_func->call(interpreter, { {left, right} });
-
-                // todo(Gustav): check that return value is of expected type?
-                return ret;
+                return perform_binary_op_on_instances(x, left, right, "_add");
             }
             else
             {

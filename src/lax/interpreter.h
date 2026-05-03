@@ -13,10 +13,17 @@ struct ErrorHandler;
 struct Program;
 struct Resolved;
 
+namespace named::functions
+{
+    constexpr const char* const add = "_add";
+    constexpr const char* const mul = "_mul";
+    constexpr const char* const div = "_div";
+    constexpr const char* const sub = "_sub";
+}
+
 
 // runtime errors are sent to the error handler
 // return false on runtime error
-
 
 struct Interpreter
 {

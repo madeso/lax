@@ -1555,7 +1555,7 @@ struct MainInterpreter : ExpressionObjectVisitor, StatementVoidVisitor
             }
             else if (is_instance(left->get_type()) && is_instance(right->get_type()))
             {
-                return perform_binary_op_on_instances(x, left, right, "_min");
+                return perform_binary_op_on_instances(x, left, right, named::functions::sub);
             }
             else
             {
@@ -1570,7 +1570,7 @@ struct MainInterpreter : ExpressionObjectVisitor, StatementVoidVisitor
             }
             else if (is_instance(left->get_type()) && is_instance(right->get_type()))
             {
-                return perform_binary_op_on_instances(x, left, right, "_div");
+                return perform_binary_op_on_instances(x, left, right, named::functions::div);
             }
             else
             {
@@ -1585,7 +1585,7 @@ struct MainInterpreter : ExpressionObjectVisitor, StatementVoidVisitor
             }
             else if (is_instance(left->get_type()) && is_instance(right->get_type()))
             {
-                return perform_binary_op_on_instances(x, left, right, "_mul");
+                return perform_binary_op_on_instances(x, left, right, named::functions::mul);
             }
             else
             {
@@ -1611,7 +1611,7 @@ struct MainInterpreter : ExpressionObjectVisitor, StatementVoidVisitor
             }
             else if (is_instance(left->get_type()) && is_instance(right->get_type()))
             {
-                return perform_binary_op_on_instances(x, left, right, "_add");
+                return perform_binary_op_on_instances(x, left, right, named::functions::add);
             }
             else
             {

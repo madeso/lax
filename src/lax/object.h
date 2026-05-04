@@ -527,6 +527,15 @@ struct ClassAdder
         return *this;
     }
 
+    ClassAdder<T>&
+    add_static_function(const std::string& name, NativeFunction&& func)
+    {
+        std::shared_ptr<Callable> native_func = make_native_function(name, std::move(func));
+        [[maybe_unused]] const auto was_added = native_klass->add_method_or_false(name, native_func);
+        assert(was_added);
+        return *this;
+    }
+
     template<typename P>
     ClassAdder<T>&
     add_property(const std::string& name, std::function<P(T&)> getter, std::function<void (T&, P)> setter)

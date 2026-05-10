@@ -17,6 +17,13 @@ enum class ObjectType
     nil, string, boolean, array, number_int, number_float, callable, klass, instance, native_instance, native_package, type
 };
 
+namespace named::functions
+{
+    constexpr const char* const add = "_add";
+    constexpr const char* const mul = "_mul";
+    constexpr const char* const div = "_div";
+    constexpr const char* const sub = "_sub";
+}
 
 struct Object;
 struct Environment;
@@ -515,6 +522,15 @@ struct ClassAdder
                 return func(specific_type->data, helper);
             }
         );
+        [[maybe_unused]] const auto was_added = native_klass->add_method_or_false(name, native_func);
+        assert(was_added);
+        return *this;
+    }
+
+    ClassAdder<T>&
+    add_static_function(const std::string& name, NativeFunction&& func)
+    {
+        std::shared_ptr<Callable> native_func = make_native_function(name, std::move(func));
         [[maybe_unused]] const auto was_added = native_klass->add_method_or_false(name, native_func);
         assert(was_added);
         return *this;

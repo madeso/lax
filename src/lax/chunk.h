@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 namespace lax
 {
 
@@ -16,5 +18,7 @@ struct Chunk
 
     void write(std::uint8_t byte);
 };
+
+std::string disassemble_chunk(const Chunk& chunk, const char* name);
 
 }

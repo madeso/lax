@@ -1,5 +1,6 @@
 #include "lax/chunk.h"
 
+#include <iomanip>
 #include <sstream>
 
 namespace lax
@@ -23,7 +24,7 @@ namespace lax
     }
 
     std::size_t disassemble_instruction(std::ostream& s, const Chunk& chunk, std::size_t offset) {
-        s << offset;
+        s << std::setw(4) << std::setfill('0') << offset;
 
         const auto instruction = chunk.code[offset];
         switch (instruction) {

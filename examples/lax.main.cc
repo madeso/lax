@@ -11,6 +11,7 @@
 #include "lax/errorhandler.h"
 #include "lax/scanner.h"
 #include "lax/ast.h"
+#include "lax/chunk.h"
 #include "lax/parser.h"
 #include "lax/interpreter.h"
 #include "lax/printhandler.h"
@@ -181,7 +182,51 @@ struct AssemblerStatementsRunner : CodeRunner
     }
 };
 
+lax::OpCode opcode_from_token(lax::AsmTokenType type)
+{
+    switch (type)
+    {
+    // case lax::AsmTokenType::CST: return lax::OpCode::Return;
+    case lax::AsmTokenType::RET: return lax::OpCode::Return;
+    default:
+        assert(false && "unknown opcode");
+        return lax::OpCode::Return;
+    }
+}
 
+struct AsmToBytecodeRunner : CodeRunner
+{
+    RunError
+    run_code(std::shared_ptr<lax::Interpreter> interpreter, const std::string& source) override
+    {
+        auto tokens = lax::scan_asm_tokens(source, interpreter->get_error_handler());
+        auto program = lax::parse_asm_program(tokens.tokens, interpreter->get_error_handler());
+
+        if (tokens.errors > 0 || program.errors > 0)
+        {
+            return RunError::syntax_error;
+        }
+
+        std::unordered_map<std::string, std::size_t> labels;
+        for (std::size_t index=0; index < program.program.size(); ++index)
+        {
+            const auto& instruction = program.program[index];
+            if (instruction.label.has_value() == false) continue;
+            labels[instruction.label.value()] = index;
+        }
+
+        lax::Chunk chunk;
+
+        for (const auto& instruction: program.program)
+        {
+            chunk.write(opcode_from_token(instruction.instruction));
+        }
+
+        std::cout << lax::disassemble_chunk(chunk, "assembled program") << "\n";
+
+        return RunError::no_error;
+    }
+};
 
 
 std::string read_to_string(std::istream& handle)
@@ -420,6 +465,10 @@ main(int argc, char** argv)
         });
     cli.bind_flag('p', "run lexer/parser on asm", [&]() -> std::optional<int> {
         runner = std::make_shared<AssemblerStatementsRunner>();
+        return std::nullopt;
+        });
+    cli.bind_flag('b', "run bytecode on asm", [&]() -> std::optional<int> {
+        runner = std::make_shared<AsmToBytecodeRunner>();
         return std::nullopt;
         });
 

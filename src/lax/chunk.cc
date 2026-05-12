@@ -11,6 +11,11 @@ namespace lax
         code.push_back(byte);
     }
 
+    void Chunk::write(OpCode byte)
+    {
+        code.push_back(static_cast<std::uint8_t>(byte));
+    }
+
     OpCode opcode_from_byte(std::uint8_t byte)
     {
         return static_cast<OpCode>(byte);
@@ -27,11 +32,11 @@ namespace lax
         s << std::setw(4) << std::setfill('0') << offset;
 
         const auto instruction = chunk.code[offset];
-        switch (instruction) {
+        switch (opcode_from_byte(instruction)) {
         case OpCode::Return:
             return simple_instruction(s, "Return", offset);
         default:
-            s << "Unknown opcode "<< instruction << "\n";
+            s << "Unknown opcode " << instruction << "\n";
             return offset + 1;
         }
     }

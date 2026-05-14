@@ -11,14 +11,9 @@ namespace lax
         code.push_back(byte);
     }
 
-    void Chunk::write(OpCode byte)
+    void Chunk::write(OpCode op)
     {
-        code.push_back(static_cast<std::uint8_t>(byte));
-    }
-
-    OpCode opcode_from_byte(std::uint8_t byte)
-    {
-        return static_cast<OpCode>(byte);
+        write(byte_from_opcode(op));
     }
 
     // printing

@@ -52,7 +52,7 @@ namespace lax
         IDENTIFIER, COLON,
 
         // commands
-        CST, RET,
+        COMMAND,
 
         // end
         TERMINATOR,
@@ -70,8 +70,7 @@ namespace lax
         case AsmTokenType::IDENTIFIER:   return "identifier";
         case AsmTokenType::COLON:        return "colon";
         
-        case AsmTokenType::CST:          return "cst";
-        case AsmTokenType::RET:          return "ret";
+        case AsmTokenType::COMMAND:      return "command";
 
         case AsmTokenType::TERMINATOR:   return "terminator";
         case AsmTokenType::EOF:          return "eof";

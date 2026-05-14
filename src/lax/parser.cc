@@ -1087,16 +1087,13 @@ struct AsmParser
                 consume(AsmTokenType::COLON, "Expected ':' after label");
             }
 
-            const auto instruction = peek().type;
-            if (base_cast(AsmTokenType::COLON) < base_cast(instruction) && base_cast(instruction) < base_cast(AsmTokenType::TERMINATOR))
-            {
-                // ok
-                consume(instruction, "Internal error reading instruction");
-            }
-            else
+            if (peek().type != AsmTokenType::COMMAND)
             {
                 throw error(offset_for_error(peek()), label.has_value() ? "Expected instruction after label" : "Expected instruction");
             }
+
+            const auto op = consume(AsmTokenType::COMMAND, "Internal error reading instruction").op;
+            assert(op.has_value());
 
             std::vector<AsmLiteralValue> arguments;
             while (match({ AsmTokenType::IDENTIFIER, AsmTokenType::NUMBER_FLOAT, AsmTokenType::NUMBER_INT, AsmTokenType::STRING }))
@@ -1111,7 +1108,7 @@ struct AsmParser
 
             consume_terminator("line");
 
-            return ParsedAsmInstruction{ std::move(label), instruction, arguments };
+            return ParsedAsmInstruction{ std::move(label), *op, arguments };
         }
         catch (const ParseError&)
         {

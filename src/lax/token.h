@@ -2,6 +2,7 @@
 
 #include <variant>
 
+#include "lax/opcode.h"
 #include "lax/object.h"
 #include "lax/source.h"
 #include "lax/tokentype.h"
@@ -29,6 +30,7 @@ using AsmLiteral = std::optional<AsmLiteralValue>;
 struct AsmToken
 {
     AsmTokenType type;
+    std::optional<OpCode> op; // only has a value if type == AsmTokenType::COMMAND
     std::string_view lexeme;
     AsmLiteral literal;
     Offset offset;

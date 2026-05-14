@@ -2,8 +2,6 @@
 
 #include <unordered_map>
 #include <sstream>
-#include <cctype>    // std::tolower
-#include <algorithm> // std::equal
 
 #include "lax/errorhandler.h"
 #include "lax/object.h"
@@ -12,21 +10,6 @@ using namespace std::literals;
 
 namespace lax { namespace
 {
-
-
-bool ichar_equals(char a, char b)
-{
-    return std::tolower(static_cast<unsigned char>(a)) ==
-        std::tolower(static_cast<unsigned char>(b));
-}
-
-template<typename TStr>
-bool iequals(const TStr& a, const TStr& b)
-{
-    return a.size() == b.size() &&
-        std::equal(a.begin(), a.end(), b.begin(), ichar_equals);
-}
-
 
 bool
 is_num_char(char c)
@@ -127,14 +110,6 @@ find_lax_keyword_or_null(std::string_view str)
     {
         return std::nullopt;
     }
-}
-
-std::optional<AsmTokenType>
-find_asm_keyword_or_null(std::string_view str)
-{
-    if (iequals(str, "CST"sv)) return AsmTokenType::CST;
-    if (iequals(str, "RET"sv)) return AsmTokenType::RET;
-    return std::nullopt;
 }
 
 struct GenericScanner
@@ -464,22 +439,39 @@ struct AsmScanner : GenericScanner
     void
     add_token(AsmTokenType type)
     {
-        add_token(type, std::nullopt);
+        add_token(type, std::nullopt, std::nullopt);
+    }
+
+    void add_literal(AsmTokenType type, AsmLiteral literal)
+    {
+        add_token(type, std::nullopt, std::move(literal));
+    }
+
+    void add_op(AsmTokenType type, OpCode op)
+    {
+        add_token(type, op, std::nullopt);
     }
 
     void
-    add_token(AsmTokenType type, AsmLiteral literal)
+    add_token(AsmTokenType type, std::optional<OpCode> op, AsmLiteral literal)
     {
         auto text = substr(source, start, current);
         result.tokens.emplace_back(AsmToken{
-            type, text, std::move(literal), Offset{ file, start, current }
+            type, op, text, std::move(literal), Offset{ file, start, current }
         });
     }
 
     void add_keyword_or_id_token(const std::string_view& text) override
     {
-        const auto keyword_type = find_asm_keyword_or_null(text);
-        add_token(keyword_type.value_or(AsmTokenType::IDENTIFIER));
+        const auto op = find_asm_keyword_or_null(text);
+        if (op.has_value())
+        {
+            add_op(AsmTokenType::COMMAND, *op);
+        }
+        else
+        {
+            add_token(AsmTokenType::IDENTIFIER);
+        }
     }
 
     void add_error() override
@@ -490,22 +482,22 @@ struct AsmScanner : GenericScanner
     void add_eof_token() override
     {
         result.tokens.emplace_back(AsmToken{
-            AsmTokenType::EOF, "", std::nullopt, Offset{ file, current, current }});
+            AsmTokenType::EOF, std::nullopt, "", std::nullopt, Offset{ file, current, current }});
     }
 
     void add_string_token(const std::string& str) override
     {
-        add_token(AsmTokenType::STRING, str);
+        add_literal(AsmTokenType::STRING, str);
     }
 
     void add_int_token(Ti i) override
     {
-        add_token(AsmTokenType::NUMBER_INT, i);
+        add_literal(AsmTokenType::NUMBER_INT, i);
     }
 
     void add_float_token(Tf f) override
     {
-        add_token(AsmTokenType::NUMBER_FLOAT, f);
+        add_literal(AsmTokenType::NUMBER_FLOAT, f);
     }
 
     void

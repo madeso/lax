@@ -169,7 +169,7 @@ struct AssemblerStatementsRunner : CodeRunner
 
         for (const auto& instruction : program.program)
         {
-            std::cout << instruction.label.value_or("[no label]") << ": " << lax::tokentype_to_string(instruction.instruction);
+            std::cout << instruction.label.value_or("[no label]") << ": " << lax::string_from_opcode(instruction.instruction);
 
             for (const auto& va : instruction.arguments)
             {
@@ -181,18 +181,6 @@ struct AssemblerStatementsRunner : CodeRunner
         return RunError::no_error;
     }
 };
-
-lax::OpCode opcode_from_token(lax::AsmTokenType type)
-{
-    switch (type)
-    {
-    // case lax::AsmTokenType::CST: return lax::OpCode::Return;
-    case lax::AsmTokenType::RET: return lax::OpCode::Return;
-    default:
-        assert(false && "unknown opcode");
-        return lax::OpCode::Return;
-    }
-}
 
 struct AsmToBytecodeRunner : CodeRunner
 {
@@ -219,7 +207,7 @@ struct AsmToBytecodeRunner : CodeRunner
 
         for (const auto& instruction: program.program)
         {
-            chunk.write(opcode_from_token(instruction.instruction));
+            chunk.write(instruction.instruction);
         }
 
         std::cout << lax::disassemble_chunk(chunk, "assembled program") << "\n";

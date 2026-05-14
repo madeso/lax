@@ -3,6 +3,7 @@
 #include <memory>
 #include <vector>
 
+#include "lax/opcode.h"
 #include "lax/ast.h"
 #include "lax/token.h"
 #include "lax/program.h"
@@ -25,7 +26,7 @@ struct LaxParseResult
 struct ParsedAsmInstruction
 {
     std::optional<std::string> label;
-    AsmTokenType instruction;
+    OpCode instruction;
     std::vector<AsmLiteralValue> arguments;
 };
 

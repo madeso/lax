@@ -31,6 +31,7 @@ add_custom_command(
 # main laxlib
 set(lax_src
     lax/source.cc lax/source.h
+    lax/opcode.cc lax/opcode.h
     lax/ast.cc lax/ast.h
     lax/chunk.cc lax/chunk.h
     lax/debug.cc lax/debug.h

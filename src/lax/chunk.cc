@@ -24,7 +24,7 @@ namespace lax
     }
 
     std::size_t disassemble_instruction(std::ostream& s, const Chunk& chunk, std::size_t offset) {
-        s << std::setw(4) << std::setfill('0') << offset;
+        s << std::setw(4) << std::setfill('0') << offset << ' ';
 
         const auto instruction = chunk.code[offset];
         switch (opcode_from_byte(instruction)) {

@@ -32,6 +32,7 @@ add_custom_command(
 set(lax_src
     lax/source.cc lax/source.h
     lax/opcode.cc lax/opcode.h
+    lax/value.cc lax/value.h
     lax/ast.cc lax/ast.h
     lax/chunk.cc lax/chunk.h
     lax/debug.cc lax/debug.h
@@ -49,6 +50,7 @@ set(lax_src
     lax/token.cc lax/token.h
     lax/tokentype.h
     lax/lax.cc lax/lax.h
+    lax/match.h
 )
 
 add_library(liblax STATIC ${lax_src} ${EXPR_SOURCE} ${EXPR_HEADER})

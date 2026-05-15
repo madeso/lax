@@ -16,7 +16,7 @@
 #include "lax/interpreter.h"
 #include "lax/printhandler.h"
 #include "lax/resolver.h"
-
+#include "lax/match.h"
 
 
 struct PrintErrors : lax::PrintHandler
@@ -205,9 +205,60 @@ struct AsmToBytecodeRunner : CodeRunner
 
         lax::Chunk chunk;
 
+        bool error = false;
         for (const auto& instruction: program.program)
         {
             chunk.write(instruction.instruction);
+
+            const auto& args = instruction.arguments;
+            switch (instruction.instruction)
+            {
+            case lax::OpCode::Constant:
+                if (args.size() != 1)
+                {
+                    std::cerr << "Error: Constant expects exactly one argument.\n";
+                    error = true;
+                    continue;
+                }
+
+                lax::match(args[0])
+                (
+                    [&](lax::Ti i) {
+                        std::cerr << "integers currently not supported as constants, but got " << i << "\n";
+                        error = true;
+                    },
+                    [&](lax::Tf f) {
+                        const auto index = chunk.add_constant(f);
+                        if (index >= static_cast<std::size_t>(std::numeric_limits<std::uint8_t>::max()))
+                        {
+                            std::cerr << "error: too many constants\n";
+                            error = true;
+                        }
+                        else
+                        {
+                            chunk.write(static_cast<std::uint8_t>(index));
+                        }
+                    },
+                    [&](std::string s) {
+                        std::cerr << "strings currently not supported as constants, but got " << s << "\n";
+                        error = true;
+                    }
+                );
+                break;
+            case lax::OpCode::Return:
+                if (args.empty() == false)
+                {
+                    std::cerr << "Error: Return has no arguments.\n";
+                    error = true;
+                }
+                break;
+            }
+        }
+
+        if (error)
+        {
+            std::cerr << "Failed to assemble program, exiting...\n";
+            return RunError::syntax_error;
         }
 
         std::cout << lax::disassemble_chunk(chunk, "assembled program") << "\n";

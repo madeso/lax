@@ -15,7 +15,7 @@ include(data/cmake/Sanitizers.cmake)
 add_library(lax_project_options INTERFACE)
 add_library(lax_project_warnings INTERFACE)
 
-target_compile_features(lax_project_options INTERFACE cxx_std_17)
+target_compile_features(lax_project_options INTERFACE cxx_std_20)
 set_project_warnings(lax_project_warnings)
 enable_sanitizers(lax_project_options)
 

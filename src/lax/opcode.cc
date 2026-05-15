@@ -75,6 +75,7 @@ struct StringMap
 const StringMap<OpCode>& get_opcode_string_map()
 {
     static const auto map = StringMap<OpCode>()
+        .add(OpCode::Constant, "cst")
         .add(OpCode::Return, "ret")
     ;
     return map;

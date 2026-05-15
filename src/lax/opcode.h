@@ -5,6 +5,7 @@ namespace lax
 
 enum class OpCode : std::uint8_t
 {
+    Constant,
     Return
 };
 

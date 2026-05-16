@@ -1080,6 +1080,8 @@ struct AsmParser
                 return std::nullopt;
             }
 
+            const auto start = peek().offset;
+
             std::optional<std::string> label;
             if (match({ AsmTokenType::IDENTIFIER}))
             {
@@ -1106,9 +1108,17 @@ struct AsmParser
                 }
             }
 
+            const auto end = previous_offset();
+
             consume_terminator("line");
 
-            return ParsedAsmInstruction{ std::move(label), *op, arguments };
+            return ParsedAsmInstruction{
+                .start = start.start,
+                .end = end.end,
+                .label = std::move(label),
+                .instruction = *op,
+                .arguments = arguments
+            };
         }
         catch (const ParseError&)
         {

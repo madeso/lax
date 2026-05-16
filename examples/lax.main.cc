@@ -208,7 +208,8 @@ struct AsmToBytecodeRunner : CodeRunner
         bool error = false;
         for (const auto& instruction: program.program)
         {
-            chunk.write(instruction.instruction);
+            const auto where = lax::SourceRange(instruction.start, instruction.end);
+            chunk.write(instruction.instruction, where);
 
             const auto& args = instruction.arguments;
             switch (instruction.instruction)
@@ -236,7 +237,7 @@ struct AsmToBytecodeRunner : CodeRunner
                         }
                         else
                         {
-                            chunk.write(static_cast<std::uint8_t>(index));
+                            chunk.write(static_cast<std::uint8_t>(index), where);
                         }
                     },
                     [&](std::string s) {

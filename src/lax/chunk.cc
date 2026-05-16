@@ -6,14 +6,15 @@
 namespace lax
 {
 
-    void Chunk::write(std::uint8_t byte)
+    void Chunk::write(std::uint8_t byte, SourceRange range)
     {
         code.push_back(byte);
+        source.ranges.push_back(range);
     }
 
-    void Chunk::write(OpCode op)
+    void Chunk::write(OpCode op, SourceRange range)
     {
-        write(byte_from_opcode(op));
+        write(byte_from_opcode(op), range);
     }
 
     // printing
@@ -33,6 +34,17 @@ namespace lax
 
     std::size_t disassemble_instruction(std::ostream& s, const Chunk& chunk, std::size_t offset) {
         s << std::setw(4) << std::setfill('0') << offset << ' ';
+
+        if (offset > 0 &&
+            chunk.source.ranges[offset] == chunk.source.ranges[offset - 1]) {
+            s << "    |     ";
+        }
+        else {
+            s
+                << std::right << std::setw(4) << std::setfill(' ') << chunk.source.ranges[offset].start
+                << '-'
+                << std::left << std::setw(4) << std::setfill(' ') << chunk.source.ranges[offset].end << " ";
+        }
 
         const auto instruction = chunk.code[offset];
         switch (opcode_from_byte(instruction)) {

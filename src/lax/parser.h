@@ -25,6 +25,8 @@ struct LaxParseResult
 
 struct ParsedAsmInstruction
 {
+    std::size_t start;
+    std::size_t end;
     std::optional<std::string> label;
     OpCode instruction;
     std::vector<AsmLiteralValue> arguments;

@@ -7,23 +7,23 @@ namespace lax
 
 struct ErrorHandler;
 
-struct ScanResult
+struct ScriptTokens
 {
     int errors = 0;
     std::vector<Token> tokens;
 };
 
-struct AsmScanResult
+struct AsmTokens
 {
     int errors = 0;
     std::vector<AsmToken> tokens;
 };
 
-ScanResult
-scan_lox_tokens(const std::string_view source, ErrorHandler* error_handler);
+ScriptTokens
+script_tokens_from_source(const std::string_view source, ErrorHandler* error_handler);
 
-AsmScanResult
-scan_asm_tokens(std::string_view source, ErrorHandler* error_handler);
+AsmTokens
+asm_tokens_from_source(std::string_view source, ErrorHandler* error_handler);
 
 std::vector<std::string>
 parse_package_path(const std::string& path);

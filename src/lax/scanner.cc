@@ -112,7 +112,7 @@ find_lax_keyword_or_null(std::string_view str)
     }
 }
 
-struct GenericScanner
+struct GenericVectorScanner
 {
     std::string_view source;
     std::shared_ptr<Source> file;
@@ -121,18 +121,18 @@ struct GenericScanner
     std::size_t start = 0; // first character in lexeme being scanned
     std::size_t current = 0; // character currently being scanned
 
-    explicit GenericScanner(std::string_view s, ErrorHandler* eh)
+    explicit GenericVectorScanner(std::string_view s, ErrorHandler* eh)
         : source(s)
         , file(std::make_shared<Source>(std::string(s)))
         , error_handler(eh)
     {
     }
 
-    virtual ~GenericScanner() = default;
-    GenericScanner(const GenericScanner&) = delete;
-    void operator=(const GenericScanner&) = delete;
-    GenericScanner(GenericScanner&&) = delete;
-    void operator=(GenericScanner&&) = delete;
+    virtual ~GenericVectorScanner() = default;
+    GenericVectorScanner(const GenericVectorScanner&) = delete;
+    void operator=(const GenericVectorScanner&) = delete;
+    GenericVectorScanner(GenericVectorScanner&&) = delete;
+    void operator=(GenericVectorScanner&&) = delete;
 
     void
     scan_many_tokens()
@@ -308,13 +308,13 @@ struct GenericScanner
     }
 };
 
-struct LoxScanner : GenericScanner
+struct LoxVectorScanner : GenericVectorScanner
 {
-    LoxScanner(std::string_view s, ErrorHandler* eh) : GenericScanner(s, eh)
+    LoxVectorScanner(std::string_view s, ErrorHandler* eh) : GenericVectorScanner(s, eh)
     {
     }
 
-    ScanResult result; // output "variable"
+    ScriptTokens result; // output "variable"
 
     void
     add_token(TokenType type)
@@ -428,13 +428,13 @@ struct LoxScanner : GenericScanner
     }
 };
 
-struct AsmScanner : GenericScanner
+struct AsmVectorScanner : GenericVectorScanner
 {
-    AsmScanner(std::string_view s, ErrorHandler* eh) : GenericScanner(s, eh)
+    AsmVectorScanner(std::string_view s, ErrorHandler* eh) : GenericVectorScanner(s, eh)
     {
     }
 
-    AsmScanResult result; // output "variable"
+    AsmTokens result; // output "variable"
 
     void
     add_token(AsmTokenType type)
@@ -556,7 +556,7 @@ namespace lax
 std::vector<std::string>
 parse_package_path(const std::string& path)
 {
-    const auto package_path = scan_lox_tokens(path, nullptr);
+    const auto package_path = script_tokens_from_source(path, nullptr);
     if(package_path.errors != 0) { return {}; }
     if(package_path.tokens.empty()) { return {}; }
 
@@ -585,18 +585,18 @@ parse_package_path(const std::string& path)
     return {};
 }
 
-ScanResult
-scan_lox_tokens(std::string_view source, ErrorHandler* error_handler)
+ScriptTokens
+script_tokens_from_source(std::string_view source, ErrorHandler* error_handler)
 {
-    auto scanner = LoxScanner(source, error_handler);
+    auto scanner = LoxVectorScanner(source, error_handler);
     scanner.scan_many_tokens();
     return std::move(scanner.result);
 }
 
-AsmScanResult
-scan_asm_tokens(std::string_view source, ErrorHandler* error_handler)
+AsmTokens
+asm_tokens_from_source(std::string_view source, ErrorHandler* error_handler)
 {
-    auto scanner = AsmScanner(source, error_handler);
+    auto scanner = AsmVectorScanner(source, error_handler);
     scanner.scan_many_tokens();
     return std::move(scanner.result);
 }

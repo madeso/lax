@@ -20,7 +20,7 @@ namespace
         auto output = ParseOutput{"<syntax errors>", {}};
 
         auto printer = AddStringErrors{&output.err};
-        auto tokens = lax::scan_lox_tokens(source, &printer);
+        auto tokens = lax::script_tokens_from_source(source, &printer);
         auto program = lax::parse_lax_program(tokens.tokens, &printer);
 
         if(tokens.errors == 0 && program.errors == 0)

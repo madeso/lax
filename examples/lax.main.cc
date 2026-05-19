@@ -45,7 +45,7 @@ struct TokenizeCodeRunner : CodeRunner
     RunError
     run_code(std::shared_ptr<lax::Interpreter> interpreter, const std::string& source) override
     {
-        auto tokens = lax::scan_lox_tokens(source, interpreter->get_error_handler());
+        auto tokens = lax::script_tokens_from_source(source, interpreter->get_error_handler());
 
         if(tokens.errors > 0)
         {
@@ -75,7 +75,7 @@ struct AstCodeRunner : CodeRunner
     RunError
     run_code(std::shared_ptr<lax::Interpreter> interpreter, const std::string& source) override
     {
-        auto tokens = lax::scan_lox_tokens(source, interpreter->get_error_handler());
+        auto tokens = lax::script_tokens_from_source(source, interpreter->get_error_handler());
         auto program = lax::parse_lax_program(tokens.tokens, interpreter->get_error_handler());
 
         if(tokens.errors > 0 || program.errors > 0)
@@ -101,7 +101,7 @@ struct InterpreterRunner : CodeRunner
     RunError
     run_code(std::shared_ptr<lax::Interpreter> interpreter, const std::string& source) override
     {
-        auto tokens = lax::scan_lox_tokens(source, interpreter->get_error_handler());
+        auto tokens = lax::script_tokens_from_source(source, interpreter->get_error_handler());
         auto program = lax::parse_lax_program(tokens.tokens, interpreter->get_error_handler());
         
         if(tokens.errors > 0 || program.errors > 0)
@@ -136,7 +136,7 @@ struct AssemblerTokensRunner : CodeRunner
     RunError
     run_code(std::shared_ptr<lax::Interpreter> interpreter, const std::string& source) override
     {
-        auto tokens = lax::scan_asm_tokens(source, interpreter->get_error_handler());
+        auto tokens = lax::asm_tokens_from_source(source, interpreter->get_error_handler());
 
         if (tokens.errors > 0)
         {
@@ -159,7 +159,7 @@ struct AssemblerStatementsRunner : CodeRunner
     RunError
     run_code(std::shared_ptr<lax::Interpreter> interpreter, const std::string& source) override
     {
-        auto tokens = lax::scan_asm_tokens(source, interpreter->get_error_handler());
+        auto tokens = lax::asm_tokens_from_source(source, interpreter->get_error_handler());
         auto program = lax::parse_asm_program(tokens.tokens, interpreter->get_error_handler());
 
         if (tokens.errors > 0 || program.errors > 0)
@@ -187,7 +187,7 @@ struct AsmToBytecodeRunner : CodeRunner
     RunError
     run_code(std::shared_ptr<lax::Interpreter> interpreter, const std::string& source) override
     {
-        auto tokens = lax::scan_asm_tokens(source, interpreter->get_error_handler());
+        auto tokens = lax::asm_tokens_from_source(source, interpreter->get_error_handler());
         auto program = lax::parse_asm_program(tokens.tokens, interpreter->get_error_handler());
 
         if (tokens.errors > 0 || program.errors > 0)
